@@ -71,36 +71,6 @@ router.post('/signup', async (req, res) => {
 	}
 });
 
-
-router.get('/signup', async (req, res) => {
-	return res.status(405).json(
-		{
-			error : "Method Not Allowed", 
-			message: "허가되지 않은 메소드입니다."
-		}
-	);
-});
-router.delete('/signup', async (req, res) => {
-	return res.status(405).json(
-		{
-			error : "Method Not Allowed", 
-			message: "허가되지 않은 메소드입니다."
-		}
-	);
-});
-router.put('/signup', async (req, res) => {
-	return res.status(405).json(
-		{
-			error : "Method Not Allowed", 
-			message: "허가되지 않은 메소드입니다."
-		}
-	);
-});
-
-
-
-
-
 router.post('/signin', async (req, res) => {
 	
 	const body = req.body;
@@ -164,5 +134,81 @@ router.post('/logout',verifyToken, async (req, res) => {
 		});
 	}
 });
+
+router.get('/signin', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+router.delete('/signin', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+router.put('/signin', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+
+router.get('/signup', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+router.delete('/signup', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+router.put('/signup', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+
+router.get('/logout', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+router.delete('/logout', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+router.put('/logout', async (req, res) => {
+	return res.status(405).json(
+		{
+			error : "Method Not Allowed", 
+			message: "허가되지 않은 메소드입니다."
+		}
+	);
+});
+
 module.exports = router;
 
