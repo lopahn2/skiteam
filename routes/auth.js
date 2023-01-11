@@ -112,15 +112,10 @@ router.post('/signin', async (req, res) => {
 		const password = await makePasswordHashed(body.id, body.pwd);
 		if (recordedUserInfo.pwd === password) {
 			const token = jwt.sign({
-				id: recordedUserInfo.id,
-				auth: userSelectResult[0].authority,
-				peer: userSelectResult[0].peer
+				id: recordedUserInfo.id
 			}, process.env.JWT_SECRET, {
 				issuer: 'api-server'
 			});
-			
-			
-			const start_peer = await axios.post("http://channel.ky2chain.com/v1/peer/start",{"id" : body.id});
 			
 			
 			await redisLocalCon.set(recordedUserInfo.id, token);
@@ -130,8 +125,7 @@ router.post('/signin', async (req, res) => {
 				{
 					message : "로그인 성공! 토큰은 DB에 저장되어 관리됩니다. 로그인 유효시간은 6시간 입니다.",
 					issue : "암호화 시간이 조금 소요될 수 있으니 기다려주세요.",
-					token,
-					start_result : start_peer.message
+					token
 				}
 			);	
 			
