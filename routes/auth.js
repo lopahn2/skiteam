@@ -42,7 +42,14 @@ router.post('/signup', async (req, res) => {
 				message: "회원 정보 중 누락된 부분이 있습니다."
 			});
 		}
-
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ?', [body.id]);
+		console.log(userSelectResult);
+		if (userSelectResult.length > 0) {
+			return res.status(400).json({
+				error : "Bad Request", 
+				message: "이미 존재하는 아이디입니다."
+			});
+		}
 		const { pwd, salt } = await createHashedPassword(body.pwd);
 		const userInfo = [body.id, pwd, body.name,salt, nowTime, nowTime];
 		await conn.execute('INSERT INTO user VALUES (?,?,?,?,?,?)', userInfo);
