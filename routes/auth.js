@@ -111,7 +111,6 @@ router.post('/signin', async (req, res) => {
 			});
 			
 			
-			const start_peer = await axios.post("http://channel.ky2chain.com/v1/peer/start",{"id" : body.id});
 			
 			
 			await redisLocalCon.set(recordedUserInfo.id, token);
