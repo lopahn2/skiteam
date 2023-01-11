@@ -18,12 +18,10 @@ const { start } = require('pm2');
 
 router.post('/signup', async (req, res) => {
 	const body = req.body;
-	console.log(body);
   	try {
 		const nowTime = moment().format("YYYY-M-D H:m:s");
 		const authenticatedInfo = ['id','pwd','name']
 		const orgCandidates = Object.keys(body).filter(key => authenticatedInfo.includes(key));
-		console.log(orgCandidates);
 		let authenticatedBlanckFlag = false
 		authenticatedInfo.forEach((key)=>{
 			if (body[key] === "") {
@@ -47,7 +45,6 @@ router.post('/signup', async (req, res) => {
 
 		const { pwd, salt } = await createHashedPassword(body.pwd);
 		const userInfo = [body.id, pwd, body.name,salt, nowTime, nowTime];
-		console.log(userInfo);
 		await conn.execute('INSERT INTO user VALUES (?,?,?,?,?,?)', userInfo);
 		console.log("회원 DB 저장 성공");
 		return res.status(201).json(
