@@ -13,14 +13,14 @@ require('../db/sqlCon.js')().then((res) => conn = res);
 let redisLocalCon = "";
 require('../db/redisLocalCon.js')().then((res) => redisLocalCon = res);
 
-const { createHashedPassword, makePasswordHashed } = require('../lib/security.js');
+const { createHashedPassword, makePasswordHashed, makeResidentNumHashed } = require('../lib/security.js');
 const { start } = require('pm2');
 
 router.post('/signup', async (req, res) => {
 	const body = req.body;
   	try {
 		const nowTime = moment().format("YYYY-M-D H:m:s");
-		const authenticatedInfo = ['id','pwd','name']
+		const authenticatedInfo = ['id','pwd','name','residentNum']
 		const orgCandidates = Object.keys(body).filter(key => authenticatedInfo.includes(key));
 		let authenticatedBlanckFlag = false
 		authenticatedInfo.forEach((key)=>{
@@ -50,9 +50,15 @@ router.post('/signup', async (req, res) => {
 				message: "이미 존재하는 아이디입니다."
 			});
 		}
-		const { pwd, salt } = await createHashedPassword(body.pwd);
-		const userInfo = [body.id, pwd, body.name,salt, nowTime, nowTime];
-		await conn.execute('INSERT INTO user VALUES (?,?,?,?,?,?)', userInfo);
+
+
+		const pwdCrypt = await createHashedPassword(body.pwd);
+		const resCrypt = await createHashedPassword(body.residentNum);
+
+		const userInfo = [body.id, pwdCrypt.crypt, body.name, resCrypt.crypt,pwdCrypt.salt,resCrypt.salt, nowTime, nowTime];
+		console.log(userInfo);
+		await conn.execute('INSERT INTO user VALUES (?,?,?,?,?,?,?,?)', userInfo);
+
 		console.log("회원 DB 저장 성공");
 		return res.status(201).json(
 			{
@@ -85,10 +91,7 @@ router.post('/signin', async (req, res) => {
 				issuer: 'api-server'
 			});
 			
-			
 			await redisLocalCon.set(recordedUserInfo.id, token);
-			//await redisLocalCon.expire(recordedUserInfo.id, 259200) // 로그인 유효 시간 6시간
-			await redisLocalCon.expire(recordedUserInfo.id);
 			
 			return res.status(200).json(
 				{
@@ -117,6 +120,59 @@ router.post('/signin', async (req, res) => {
 		);
 	}
 	
+});
+
+router.post('/idFound', async (req, res) => {
+	try {
+		const body = req.body;
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE name = ? AND residentNum', [body.name, body.residentNum]);
+		if (userSelectResult.length === 0) {
+			return res.status(401).json(
+				{
+					error : "Unauthorized",
+					message : "회원 가입되지 않은 회원입니다."
+				}
+			);
+		}
+		return res.status(200).json(
+			{
+				message : "회원정보를 찾았습니다.",
+				id : userSelectResult[0].id
+			}
+		);	
+
+	} catch (err) {
+		return res.status(406).json(
+			{
+				error : "Not Acceptable", 
+				message: "가입 정보가 없는 회원입니다."
+			}
+		);
+	}
+});
+
+router.post('/pwdFound', async (req, res) => {
+	try {
+		const body = req.body;
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ? AND name = ? AND residentNum', [body.id, body.name ,body.residentNum]);
+		if (userSelectResult.length === 0) {
+			return res.status(401).json(
+				{
+					error : "Unauthorized",
+					message : "회원 가입되지 않은 회원입니다."
+				}
+			);
+		}
+		/* 비밀번호 초기화 시키는 로직 구현하기 */
+
+	} catch (err) {
+		return res.status(406).json(
+			{
+				error : "Not Acceptable", 
+				message: "가입 정보가 없는 회원입니다."
+			}
+		);
+	}
 });
 
 router.post('/logout',verifyToken, async (req, res) => {
