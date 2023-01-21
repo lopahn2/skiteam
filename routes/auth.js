@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {verifyToken} = require('../middleware/accessController.js');
+const {verifyToken, pwdChangeAllowingCheck} = require('../middleware/accessController.js');
 const moment = require('moment-timezone');
 moment.tz.setDefault('Asia/Seoul');
 const axios = require('axios');
@@ -15,6 +15,9 @@ require('../db/redisLocalCon.js')().then((res) => redisLocalCon = res);
 
 const { createHashedPassword, makePasswordHashed, makeResidentNumHashed } = require('../lib/security.js');
 const { start } = require('pm2');
+
+
+
 
 router.post('/signup', async (req, res) => {
 	const body = req.body;
@@ -38,8 +41,8 @@ router.post('/signup', async (req, res) => {
 		});
 
 		if (organization.length === 0 || authenticatedBlanckFlag) {
-			return res.status(406).json({
-				error : "Not Acceptable", 
+			return res.status(409).json({
+				error : "Conflict", 
 				message: "회원 정보 중 누락된 부분이 있습니다."
 			});
 		}
@@ -152,7 +155,10 @@ router.post('/idFound', async (req, res) => {
 router.post('/pwdFound', async (req, res) => {
 	try {
 		const body = req.body;
-		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ? AND name = ? AND residentNum', [body.id, body.name ,body.residentNum]);
+		const residentNum = await makeResidentNumHashed(body.id ,body.residentNum);
+		console.log(residentNum);
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ? AND name = ? AND residentNum = ?', [body.id, body.name ,residentNum]);
+		console.log(userSelectResult);
 		if (userSelectResult.length === 0) {
 			return res.status(401).json(
 				{
@@ -161,8 +167,46 @@ router.post('/pwdFound', async (req, res) => {
 				}
 			);
 		}
-		/* 비밀번호 초기화 시키는 로직 구현하기 */
+		const pwdAllowToken = jwt.sign({
+			id: body.id,
+			name: body.name,
+			allowResult: true
+		}, process.env.JWT_SECRET, {
+			issuer: 'api-server'
+		});
 
+		return res.status(200).json(
+			{
+				message : "유저 정보를 확인했습니다. /auth/pwdFound/changePwd 라우터로 요청을 토큰과 함께 보내주세요",
+				pwdAllowToken
+			}
+		);	
+
+
+	} catch (err) {
+		return res.status(406).json(
+			{
+				error : "Not Acceptable", 
+				message: "가입 정보가 없는 회원입니다."
+			}
+		);
+	}
+});
+
+router.post('/pwdFound/changePwd',pwdChangeAllowingCheck, async (req, res) => {
+	try {
+		const userInfoToken = req.decoded;
+		const body = req.body;
+		const newPwd = body.newPwd;
+		const pwdCrypt = await createHashedPassword(newPwd);
+
+		await conn.execute('UPDATE user SET pwd = ?, pwdSalt = ? WHERE id = ?', [pwdCrypt.crypt, pwdCrypt.salt, userInfoToken.id]);
+
+		return res.status(200).json(
+			{
+				message:  "비밀번호 변경 완료!"
+			}
+		);	
 	} catch (err) {
 		return res.status(406).json(
 			{
@@ -229,5 +273,37 @@ router.route('/logout')
 		return res.status(405).json(notAllowedMsg);
 	})
 
+router.route('/idFound')
+	.get(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+	.delete(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+	.put(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+
+router.route('/pwdFound')
+	.get(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+	.delete(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+	.put(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+
+router.route('/pwdFound/changePwd')
+	.get(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+	.delete(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})
+	.put(async (req, res) => {
+		return res.status(405).json(notAllowedMsg);
+	})	
 module.exports = router;
 

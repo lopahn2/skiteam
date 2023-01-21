@@ -36,5 +36,9 @@
     "redis": "^4.3.1",
     "sanitize-html": "^2.7.2",
     "sql-sanitizer": "^1.0.0"
+  },
+  "devDependencies": {
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.0"
   }
 }
