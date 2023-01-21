@@ -47,11 +47,19 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
+// swagger 라우터 추가 처리
+const apiRouter = require("./routes/api");
+apiRouter(app);
+
 // 라우터 부착
 fs.readdirSync(path.join(__dirname, '/routes'))
     .filter(file => file.indexOf('.') !== 0  && file.slice(-3) === ".js")
     .forEach(routeFile => {
-			app.use(`/${routeFile.split('.')[0]}`, require(`./routes/${routeFile}`));
+      if (routeFile.split('.')[0] === "api") {
+        console.log("pass api router");
+      } else {
+        app.use(`/${routeFile.split('.')[0]}`, require(`./routes/${routeFile}`));
+      }
 		});
 
 // error handler
