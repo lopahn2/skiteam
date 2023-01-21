@@ -16,12 +16,15 @@ const swaggerTags = [
 const swaggerSchemes = ["http", "https"];
 
 const swaggerSecurityDefinitions = {
-  ApiKeyAuth: {
-    type: "apiKey",
-    name: "Authorization",
-    in: "header",
-  },
-};
+    jwtAuth: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "jwt",
+      name: "Authorization",
+      description: "인증에 필요한 토큰을 넣어주세요",
+      in: "header",
+    },
+  }; 
 
 const swaggerProduces = ["application/json"];
 
@@ -33,15 +36,18 @@ const swaggerServers = [
 ];
 
 const swaggerSecurityScheme = {
-  bearerAuth: {
+  jwtAuth: {
     type: "http",
     scheme: "bearer",
-    bearerFormat: "Token",
+    bearerFormat: "jwt",
     name: "Authorization",
-    description: "인증 토큰 값을 넣어주세요.",
+    description: "인증에 필요한 토큰을 넣어주세요",
     in: "header",
   },
+  
 };
+
+
 
 const swaggerComponents = {
   JWT_ERROR: {
@@ -102,7 +108,7 @@ class Swagger {
         servers: swaggerServers,
         schemes: swaggerSchemes,
         securityDefinitions: swaggerSecurityDefinitions,
-
+        security: [ { jwtAuth: [] } ],
         /* open api 3.0.0 version option */
         produces: swaggerProduces,
         components: {

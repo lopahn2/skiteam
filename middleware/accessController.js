@@ -28,7 +28,8 @@ exports.verifyToken = async (req, res, next) => {
 
 exports.pwdChangeAllowingCheck = async (req, res, next) => {
 	try {
-		req.decoded = jwt.verify(req.headers.authorization, process.env.JWT_SECRET);
+		const jwtToken = req.headers.authorization.split(' ')[1]
+		req.decoded = jwt.verify(jwtToken, process.env.JWT_SECRET);
 		
 		if (req.decoded.allowResult) {
 			return next();	
