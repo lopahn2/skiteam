@@ -195,7 +195,7 @@ router.post('/pwdFound', async (req, res) => {
 	}
 });
 
-router.post('/pwdFound/changePwd',pwdChangeAllowingCheck, async (req, res) => {
+router.post('/pwdFound/changePwd', pwdChangeAllowingCheck, async (req, res) => {
 	try {
 		const userInfoToken = req.decoded;
 		const body = req.body;
