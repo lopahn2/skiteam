@@ -103,9 +103,9 @@ router.post('/signin', async (req, res) => {
 			);	
 			
 		} else {
-			return res.status(406).json(
+			return res.status(409).json(
 				{
-					error : "Not Acceptable",
+					error : "Conflict",
 					message : "비밀번호가 일치하지 않습니다."
 				}
 			);
