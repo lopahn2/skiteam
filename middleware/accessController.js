@@ -4,8 +4,15 @@ let redisLocalCon = "";
 require('../db/redisLocalCon.js')().then((res) => redisLocalCon = res);
 exports.verifyToken = async (req, res, next) => {
 	try {
-		req.decoded = jwt.verify(req.headers.authorization, process.env.JWT_SECRET);
+		req.decoded = jwt.verify(req.headers.authorization.replace(/^Bearer\s/, ''), process.env.JWT_SECRET);
+		if(req.decoded.allowResult) {
+			return res.status(403).json({
+				error : '403 Forbidden',
+				message: 'Authorization 토큰이 아닙니다.'
+			});
+		}
 		const DBSearchResult = await redisLocalCon.get(req.decoded.id);
+		
 		if (DBSearchResult !== null) {
 			return next();	
 		} else {
@@ -19,6 +26,7 @@ exports.verifyToken = async (req, res, next) => {
 					message: '토큰이 만료됐습니다.'
 				});
 		}
+		console.log(err);
 		return res.status(403).json({
 					error : '403 Forbidden',
 					message: '유효하지 않은 토큰입니다.'
@@ -26,15 +34,30 @@ exports.verifyToken = async (req, res, next) => {
 	}
 }
 
+exports.notlogedIn = async (req, res, next) => {
+	try {
+		if (req.headers.authorization === undefined) {
+			return next();
+		} else {
+			return res.status(403).json({
+				error : '403 Forbidden',
+				message: '로그인 된 상태로 접근할 수 없는 라우터입니다.'
+			});
+		}
+	} catch (err) {
+		console.log(err);
+	}
+}
+
 exports.pwdChangeAllowingCheck = async (req, res, next) => {
 	try {
-		const jwtToken = req.headers.authorization.split(' ')[1]
+		const jwtToken = req.headers.authorization.replace(/^Bearer\s/, '');
 		req.decoded = jwt.verify(jwtToken, process.env.JWT_SECRET);
 		
 		if (req.decoded.allowResult) {
 			return next();	
 		} else {
-			throw new Error('TokenExpiredError');
+			throw new Error('Not PWD Change Token');
 		}
 		
 	} catch (err) {
@@ -46,7 +69,7 @@ exports.pwdChangeAllowingCheck = async (req, res, next) => {
 		}
 		return res.status(403).json({
 					error : '403 Forbidden',
-					message: '유효하지 않은 토큰입니다.'
+					message: 'PWD 변경 토큰이 아닙니다.'
 				});
 	}
 }

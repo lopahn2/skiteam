@@ -3,7 +3,7 @@ module.exports = {
       post: {
         tags: ["Auth"],
         summary: "사용자 회원가입",
-        description: "사용자 회원가입(id, pwd, name, residentNum)",
+        description: "사용자 회원가입(id, pwd, name, residentNum, email, introduce)",
         requestBody: {
           content: {
             "application/json": {
@@ -28,6 +28,21 @@ module.exports = {
                     type: "string",
                     description: "user resident num",
                     example: "990000-1000000",
+                  },
+                  authority: {
+                    type: "string",
+                    description: "user authority",
+                    example: "admin / student",
+                  },
+                  email: {
+                    type: "string",
+                    description: "user email address",
+                    example: "helloworld@gmail.com",
+                  },
+                  introduce: {
+                    type: "string",
+                    description: "user self introduce",
+                    example: "꿈꾸는 개발자 화니입니다.",
                   },
                 },
               },

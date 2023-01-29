@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {verifyToken, pwdChangeAllowingCheck} = require('../middleware/accessController.js');
+const {verifyToken, pwdChangeAllowingCheck, notlogedIn} = require('../middleware/accessController.js');
 const moment = require('moment-timezone');
 moment.tz.setDefault('Asia/Seoul');
-const axios = require('axios');
+
 
 
 let conn = "";
@@ -13,17 +13,16 @@ require('../db/sqlCon.js')().then((res) => conn = res);
 let redisLocalCon = "";
 require('../db/redisLocalCon.js')().then((res) => redisLocalCon = res);
 
-const { createHashedPassword, makePasswordHashed, makeResidentNumHashed } = require('../lib/security.js');
-const { start } = require('pm2');
+const { createHashedPassword, makePasswordHashed, makeResidentNumHashedById, makeResidentNumHashedByName } = require('../lib/security.js');
 
 
 
 
-router.post('/signup', async (req, res) => {
+router.post('/signup',notlogedIn, async (req, res) => {
 	const body = req.body;
   	try {
 		const nowTime = moment().format("YYYY-M-D H:m:s");
-		const authenticatedInfo = ['id','pwd','name','residentNum']
+		const authenticatedInfo = ['id','pwd','name','residentNum','email']
 		const orgCandidates = Object.keys(body).filter(key => authenticatedInfo.includes(key));
 		let authenticatedBlanckFlag = false
 		authenticatedInfo.forEach((key)=>{
@@ -45,7 +44,7 @@ router.post('/signup', async (req, res) => {
 				message: "회원 정보 중 누락된 부분이 있습니다."
 			});
 		}
-		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ?', [body.id]);
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user_auth WHERE id = ?', [body.id]);
 		console.log(userSelectResult);
 		if (userSelectResult.length > 0) {
 			return res.status(400).json({
@@ -57,10 +56,16 @@ router.post('/signup', async (req, res) => {
 
 		const pwdCrypt = await createHashedPassword(body.pwd);
 		const resCrypt = await createHashedPassword(body.residentNum);
-
-		const userInfo = [body.id, pwdCrypt.crypt, body.name, resCrypt.crypt,pwdCrypt.salt,resCrypt.salt, nowTime, nowTime];
-		console.log(userInfo);
-		await conn.execute('INSERT INTO user VALUES (?,?,?,?,?,?,?,?)', userInfo);
+		if (body.authority === null) {
+			body.authority = "student"
+		}
+		const userInfo = [body.id, pwdCrypt.crypt,body.authority ,body.name, resCrypt.crypt,pwdCrypt.salt,resCrypt.salt, nowTime, nowTime];
+		await conn.execute('INSERT INTO user_auth VALUES (?,?,?,?,?,?,?,?,?)', userInfo);
+		
+		if (body.introduce === null) {
+			body.introduce = ""
+		}
+		await conn.execute('INSERT INTO user_info VALUES (?,?,?,?,?,?)', [null, body.id, body.email, body.introduce,nowTime,nowTime])
 
 		console.log("회원 DB 저장 성공");
 		return res.status(201).json(
@@ -80,11 +85,11 @@ router.post('/signup', async (req, res) => {
 	}
 });
 
-router.post('/signin', async (req, res) => {
+router.post('/signin', notlogedIn, async (req, res) => {
 	
 	const body = req.body;
 	try {
-		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ?', [body.id]);
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user_auth WHERE id = ?', [body.id]);
 		const recordedUserInfo = userSelectResult[0];
 		const password = await makePasswordHashed(body.id, body.pwd);
 		if (recordedUserInfo.pwd === password) {
@@ -125,10 +130,11 @@ router.post('/signin', async (req, res) => {
 	
 });
 
-router.post('/idFound', async (req, res) => {
+router.post('/idFound',notlogedIn, async (req, res) => {
 	try {
 		const body = req.body;
-		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE name = ? AND residentNum', [body.name, body.residentNum]);
+		const residentNum = await makeResidentNumHashedByName(body.name ,body.residentNum);
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT id FROM user_auth WHERE name = ? AND residentNum = ?', [body.name, residentNum]);
 		if (userSelectResult.length === 0) {
 			return res.status(401).json(
 				{
@@ -145,6 +151,7 @@ router.post('/idFound', async (req, res) => {
 		);	
 
 	} catch (err) {
+		console.log(err);
 		return res.status(406).json(
 			{
 				error : "Not Acceptable", 
@@ -154,12 +161,12 @@ router.post('/idFound', async (req, res) => {
 	}
 });
 
-router.post('/pwdFound', async (req, res) => {
+router.post('/pwdFound',notlogedIn, async (req, res) => {
 	try {
 		const body = req.body;
-		const residentNum = await makeResidentNumHashed(body.id ,body.residentNum);
+		const residentNum = await makeResidentNumHashedById(body.id ,body.residentNum);
 		console.log(residentNum);
-		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user WHERE id = ? AND name = ? AND residentNum = ?', [body.id, body.name ,residentNum]);
+		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user_auth WHERE id = ? AND name = ? AND residentNum = ?', [body.id, body.name ,residentNum]);
 		console.log(userSelectResult);
 		if (userSelectResult.length === 0) {
 			return res.status(401).json(
@@ -197,12 +204,13 @@ router.post('/pwdFound', async (req, res) => {
 
 router.post('/pwdFound/changePwd', pwdChangeAllowingCheck, async (req, res) => {
 	try {
+		const nowTime = moment().format("YYYY-M-D H:m:s");
 		const userInfoToken = req.decoded;
 		const body = req.body;
 		const newPwd = body.newPwd;
 		const pwdCrypt = await createHashedPassword(newPwd);
 
-		await conn.execute('UPDATE user SET pwd = ?, pwdSalt = ? WHERE id = ?', [pwdCrypt.crypt, pwdCrypt.salt, userInfoToken.id]);
+		await conn.execute('UPDATE user_auth SET pwd = ?, pwdSalt = ?, updated_at = ? WHERE id = ?', [pwdCrypt.crypt, pwdCrypt.salt, nowTime, userInfoToken.id]);
 
 		return res.status(200).json(
 			{
