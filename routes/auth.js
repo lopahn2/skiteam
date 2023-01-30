@@ -22,7 +22,16 @@ router.post('/signup',notlogedIn, async (req, res) => {
 	const body = req.body;
   	try {
 		const nowTime = moment().format("YYYY-M-D H:m:s");
-		const authenticatedInfo = ['id','pwd','name','residentNum','email']
+		const mustIncludedThingsArray = ['id','pwd','name','residentNum','email'];
+        const bodyCheckResult = checkBodyFields(body, mustIncludedThingsArray);
+		if (bodyCheckResult.organization.length === 0 || bodyCheckResult.authenticatedBlanckFlag) {
+			return res.status(409).json({
+				error : "Conflict", 
+				message: "필수 기입 정보 중 누락된 부분이 있습니다."
+			});
+		}
+		/**
+		 * const authenticatedInfo = ['id','pwd','name','residentNum','email']
 		const orgCandidates = Object.keys(body).filter(key => authenticatedInfo.includes(key));
 		let authenticatedBlanckFlag = false
 		authenticatedInfo.forEach((key)=>{
@@ -44,6 +53,8 @@ router.post('/signup',notlogedIn, async (req, res) => {
 				message: "회원 정보 중 누락된 부분이 있습니다."
 			});
 		}
+		 */
+		
 		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user_auth WHERE id = ?', [body.id]);
 		console.log(userSelectResult);
 		if (userSelectResult.length > 0) {

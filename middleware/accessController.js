@@ -2,6 +2,10 @@ const jwt = require('jsonwebtoken');
 
 let redisLocalCon = "";
 require('../db/redisLocalCon.js')().then((res) => redisLocalCon = res);
+
+let conn = "";
+require('../db/sqlCon.js')().then((res) => conn = res);
+
 exports.verifyToken = async (req, res, next) => {
 	try {
 		req.decoded = jwt.verify(req.headers.authorization.replace(/^Bearer\s/, ''), process.env.JWT_SECRET);
@@ -70,6 +74,26 @@ exports.pwdChangeAllowingCheck = async (req, res, next) => {
 		return res.status(403).json({
 					error : '403 Forbidden',
 					message: 'PWD 변경 토큰이 아닙니다.'
-				});
+		});
+	}
+}
+
+exports.isMasterId = async (req, res, next) => {
+	try {
+		const token = jwt.verify(req.headers.authorization.replace(/^Bearer\s/, ''), process.env.JWT_SECRET);
+		const [masterIdSelectResult, field] = await await conn.execute('SELECT master_id FROM group WHERE master_id = ?', [token.id]);
+		if (masterIdSelectResult.length !== 0) {
+			return next();
+		} else {
+			return res.status(403).json({
+				error : '403 Forbidden',
+				message: '방장만 접근 가능한 라우터입니다.'
+			});
+		}
+	} catch (err) {
+		return res.status(403).json({
+			error : '403 Forbidden',
+			message: '유효하지 않은 토큰입니다.'
+		});
 	}
 }
