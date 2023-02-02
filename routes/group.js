@@ -41,14 +41,15 @@ router.post('/', verifyToken, async (req, res) => {
         
         const roomCreateInfo = [roomId, token.id, body.room_name, body.accommodation, roomPwd, pwdFlag, nowTime, nowTime];
 
-        await conn.execute('INSERT INTO group VALUES (?,?,?,?,?,?,?,?)', roomCreateInfo);
+        await conn.execute('INSERT INTO `group` VALUES (?,?,?,?,?,?,?,?)', roomCreateInfo);
 		
-		return res.status(200).json({
+		return res.status(201).json({
 			message : "스터디 그룹이 성공적으로 생성됐습니다.",
             roomId,
             roomPwdResult : pwdFlag
 		});
 	} catch (err) {
+		console.log(err);
 		return res.status(406).json(
 			{
 				error : "Not Acceptable", 
@@ -60,12 +61,13 @@ router.post('/', verifyToken, async (req, res) => {
 
 router.get('/', verifyToken, async (req, res) => {
 	try {
-        const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name ,accommodation, created_at FROM group');
+        const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name ,accommodation, created_at FROM `group`');
 		return res.status(200).json({
 			message : "전체 스터디그룹 정보를 전송합니다.",
             groupsSelectReseult
 		});
 	} catch (err) {
+		console.log(err);
 		return res.status(409).json({
             error : "Conflict", 
             message: "DB Conflict 발생. 잠시 후 다시 시도해주세요."
@@ -73,12 +75,20 @@ router.get('/', verifyToken, async (req, res) => {
 	}
 });
 
-// join_group api 완성 후 시작하자
 router.get('/user', verifyToken, async (req, res) => {
+	const token = req.decoded
 	try {
-        
+		const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT id, group_id, created_at, updated_at FROM `join_group` WHERE user_id = ?', [token.id]);
+		return res.status(200).json({
+			message : `${token.id}가 속한 그룹을 모두 보냅니다`,
+            groupsSelectReseult
+		});
 	} catch (err) {
-		
+		console.log(err);
+		return res.status(409).json({
+            error : "Conflict", 
+            message: "DB Conflict 발생. 잠시 후 다시 시도해주세요."
+        });
 	}
 });
 
@@ -103,23 +113,23 @@ router.get('/:roomId', verifyToken, async (req, res) => {
 
 router.put('/:roomId', verifyToken, isMasterId, async (req, res) => {
     const body = req.body;
+	console.log(req.params);
     const nowTime = moment().format("YYYY-M-D H:m:s");
 	try {
-        const roomId = await conn.execute('SELECT id FROM group WHERE id = ?', [req.params.roomId]);
+        const roomId = await conn.execute('SELECT id FROM `group` WHERE id = ?', [req.params.roomId]);
 		if (roomId[0].length === 0) {
 			return res.status(406).json({
 				error : "Not Acceptable", 
 				message: "잘못된 스터디 그룹 ID 정보입니다."
 			});
 		}
-
         let updateFlag = false;
         Object.keys(body).forEach((key) => {
             if (body[key] !== "") {
                 updateFlag = true;
             }
         });
-        if (updateFlag !== false) {
+        if (updateFlag !== true) {
             return res.status(204).json({
 				code : "204 No Content", 
 				message: "변경 사항이 없습니다."
@@ -131,18 +141,19 @@ router.put('/:roomId', verifyToken, isMasterId, async (req, res) => {
 			if (key === 'room_name') {
                 const newRoomName = body[key];
                 newRoomId= await makeHashedValue(newRoomName);
-                await conn.execute(`UPDATE group SET room_name = ?, updated_at = ? WHERE id = '${req.params.roomId}'`, [newRoomName, nowTime]);
+                await conn.execute('UPDATE `group` SET room_name = ?, updated_at = ? WHERE id = ?', [newRoomName, nowTime,req.params.roomId]);
 			} else if (key === 'room_pwd') {
                 const newRoomPwd = await makeHashedValue(body[key]);
-				await conn.execute(`UPDATE group SET room_pwd = ?, pwd_flag = ?, updated_at = ? WHERE id = '${req.params.roomId}'`, [newRoomPwd, true, nowTime]);
+				await conn.execute('UPDATE `group` SET room_pwd = ?, pwd_flag = ?, updated_at = ? WHERE id = ?', [newRoomPwd, true, nowTime,req.params.roomId]);
+			} else if (key === 'accommodation') {
+				await conn.execute('UPDATE `group` SET accommodation = ?, updated_at = ? WHERE id = ?', [body[key], nowTime,req.params.roomId]);
 			} else {
 				throw new Error('Client request key is not matched to the db column name.');
 			}
 		}
         if (newRoomId !== "") {
-            await conn.execute(`UPDATE group SET id = ? WHERE id = '${req.params.roomId}'`, [newRoomId]);
+            await conn.execute('UPDATE `group` SET id = ? WHERE id = ?', [newRoomId, req.params.roomId]);
         }
-
 		return res.status(201).json({
 			message : `${req.params.roomId}에 대한 수정 요청 사항을 처리했습니다.`,
             result: "success"
@@ -157,14 +168,14 @@ router.put('/:roomId', verifyToken, isMasterId, async (req, res) => {
 
 router.delete('/:roomId', verifyToken, isMasterId, async (req, res) => {
 	try {
-        const roomId = await conn.execute('SELECT id FROM group WHERE id = ?', [req.params.roomId]);
+        const roomId = await conn.execute('SELECT id FROM `group` WHERE id = ?', [req.params.roomId]);
 		if (roomId[0].length === 0) {
 			return res.status(406).json({
 				error : "Not Acceptable", 
 				message: "잘못된 스터디 그룹 ID 정보입니다."
 			});
 		}
-        await conn.execute(`DELETE FROM group WHERE id = ?`, [req.params.roomId]);
+        await conn.execute('DELETE FROM `group` WHERE id = ?', [req.params.roomId]);
 		return res.status(200).json({
 			message : `${req.params.roomId}에 대한 삭제 요청 사항을 처리했습니다.`,
             result: "success"
