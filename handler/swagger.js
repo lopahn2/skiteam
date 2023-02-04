@@ -34,7 +34,7 @@ const swaggerServers = [
     description: "로컬 서버",
   },{
     url: "/",
-    description: "로컬 서버",
+    description: "aws 요청 보내기 용",
   },
 ];
 
