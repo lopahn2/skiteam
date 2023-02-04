@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const {verifyToken, pwdChangeAllowingCheck, notlogedIn} = require('../middleware/accessController.js');
+const { checkBodyFields } = require('../lib/funcs');
 const moment = require('moment-timezone');
 moment.tz.setDefault('Asia/Seoul');
 
