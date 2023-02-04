@@ -30,7 +30,7 @@ const swaggerProduces = ["application/json"];
 
 const swaggerServers = [
   {
-    url: "http://localhost:80",
+    url: "http://localhost",
     description: "로컬 서버",
   },
 ];
