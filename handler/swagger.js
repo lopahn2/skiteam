@@ -32,6 +32,9 @@ const swaggerServers = [
   {
     url: "http://localhost",
     description: "로컬 서버",
+  },{
+    url: "/",
+    description: "로컬 서버",
   },
 ];
 
