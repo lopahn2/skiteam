@@ -25,6 +25,7 @@ router.post('/signup',notlogedIn, async (req, res) => {
 		const nowTime = moment().format("YYYY-M-D H:m:s");
 		const mustIncludedThingsArray = ['id','pwd','name','residentNum','email'];
         const bodyCheckResult = checkBodyFields(body, mustIncludedThingsArray);
+		console.log(body);
 		if (bodyCheckResult.organization.length === 0 || bodyCheckResult.authenticatedBlanckFlag) {
 			return res.status(409).json({
 				error : "Conflict", 
