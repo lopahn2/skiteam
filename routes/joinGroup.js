@@ -8,8 +8,6 @@ const moment = require('moment-timezone');
 const { verify } = require('crypto');
 moment.tz.setDefault('Asia/Seoul');
 
-
-
 let conn = "";
 require('../db/sqlCon.js')().then((res) => conn = res);
 
