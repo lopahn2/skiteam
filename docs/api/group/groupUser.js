@@ -1,12 +1,22 @@
+const parameters = [{
+  in : "path",
+  name: "roomId",
+  required: "true",
+  schema: {
+    type: "string"
+  }
+}];
+
 module.exports = {
-    "/group/user": {
+    "/group/user/{roomId}": {
       get: {
+        parameters,
         tags: ["Group"],
-        summary: "유저가 속한 스터디 그룹 전체 불러오기",
-        description: "유저가 속한 스터디 그룹 전체 불러오기",
+        summary: "그룹에 속한 유저 전체 불러오기",
+        description: "그룹에 속한 유저 전체 불러오기",
         responses: {
           200: {
-            description: "유저가 속한 스터디 그룹 전체 불러오기",
+            description: "그룹에 속한 유저 전체 불러오기",
             content: {
               "application/json": {
                 schema: {
@@ -14,13 +24,13 @@ module.exports = {
                   properties: {
                     message: {
                         type: "string",
-                        description: "유저가 속한 스터디 그룹 조회 메시지",
-                        example: "id가 속한 그룹을 모두 보냅니다"
+                        description: "그룹에 속한 유저 전체 불러오기",
+                        example: "그룹에 속한 모든 유저 아이디 목록을 보냅니다"
                     },
-                    groupsSelectReseult: {
+                    usersSelectReseult: {
                         type: "object",
-                        description: "스터디 그룹 전체 정보",
-                        example: [{room_info_1:"방 정보",room_info_2:"방 정보",room_info_3:"방 정보"}],
+                        description: "유저 정보들",
+                        example: [ { user_id: 'admin', name: 'admin', studyTime: 0 } ],
                     }
                   },
                 },

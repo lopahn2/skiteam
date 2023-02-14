@@ -59,6 +59,28 @@ const parameters = [{
                 },
               },
             },
+            406: {
+              description: "Not Acceptable",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      error: {
+                          type: "string",
+                          description: "에러 코드 메시지",
+                          example: "Not Acceptable",
+                      },
+                      message: {
+                          type: "string",
+                          description: "에러 세부 내용",
+                          example: "이미 참여한 그룹입니다.",
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         delete: {

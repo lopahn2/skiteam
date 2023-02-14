@@ -20,13 +20,29 @@ router.post('/:groupId', verifyToken, async (req, res) => {
     const token = req.decoded;
     const nowTime = moment().format("YYYY-M-D H:m:s");
 	try {
+		const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT * FROM `join_group` WHERE user_id = ?', [token.id]);
+		if (groupsSelectReseult.length !== 0) {
+			return res.status(406).json(
+				{
+					error : "Not Acceptable", 
+					message: "이미 참여한 그룹입니다."
+				}
+			);
+		}
 		const joinGroupInfo = [null, token.id, groupId, nowTime, nowTime];
-        await conn.execute('INSERT INTO join_group VALUES (?,?,?,?,?,?,?,?)', joinGroupInfo);
+		const joinGroupStudyTimeInfo = [null, token.id, nowTime, 0, nowTime, nowTime, groupId]
+
+		await conn.execute('INSERT INTO join_group VALUES (?,?,?,?,?)', joinGroupInfo);
+		await conn.execute('INSERT INTO study_time VALUES (?,?,?,?,?,?,?)', joinGroupStudyTimeInfo);
+
+		
+
 		return res.status(201).json({
 			message : `${groupId} 그룹에 ${token.id} 유저가 참여했습니다.`,
             groupId,
 		});
 	} catch (err) {
+		console.log(err);
 		return res.status(406).json(
 			{
 				error : "Not Acceptable", 

@@ -75,13 +75,20 @@ router.get('/', verifyToken, async (req, res) => {
 	}
 });
 
-router.get('/user', verifyToken, async (req, res) => {
-	const token = req.decoded
+router.get('/user/:roomId', verifyToken, async (req, res) => {
+	const roomId = req.params.roomId
 	try {
-		const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT id, group_id, created_at, updated_at FROM `join_group` WHERE user_id = ?', [token.id]);
+		const [usersSelectReseult, fieldUser] = await conn.execute('SELECT join_group.user_id, user_auth.name FROM join_group LEFT JOIN user_auth ON join_group.user_id = user_auth.id WHERE join_group.group_id = ?', [roomId]);
+		const usersInfo = [];
+		for await (user of usersSelectReseult) {
+			const studyTime = await conn.execute('SELECT total_time FROM study_time WHERE user_id = ?', [user.user_id]);
+			user.studyTime = studyTime[0][0].total_time;
+			usersInfo.push(user);
+		}
+		console.log(usersInfo);
 		return res.status(200).json({
-			message : `${token.id}가 속한 그룹을 모두 보냅니다`,
-            groupsSelectReseult
+			message : `그룹에 속한 모든 유저 아이디 목록을 보냅니다`,
+            usersSelectReseult
 		});
 	} catch (err) {
 		console.log(err);
@@ -95,12 +102,13 @@ router.get('/user', verifyToken, async (req, res) => {
 router.get('/:roomId', verifyToken, async (req, res) => {
 	try {
         const roomId = req.params.roomId;
-        const [groupSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name,accommodation, created_at FROM group');
+        const [groupSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name,accommodation, created_at FROM `group` WHERE id = ?', [roomId]);
 		return res.status(200).json({
 			message : "특정 스터디그룹 정보를 전송합니다.",
             groupSelectReseult
 		});
 	} catch (err) {
+		console.log(err);
 		return res.status(409).json({
             error : "Conflict", 
             message: "DB Conflict 발생. 잠시 후 다시 시도해주세요."
