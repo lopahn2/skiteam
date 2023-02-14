@@ -25,37 +25,12 @@ router.post('/signup',notlogedIn, async (req, res) => {
 		const nowTime = moment().format("YYYY-M-D H:m:s");
 		const mustIncludedThingsArray = ['id','pwd','name','residentNum','email'];
         const bodyCheckResult = checkBodyFields(body, mustIncludedThingsArray);
-		console.log(body);
 		if (bodyCheckResult.organization.length === 0 || bodyCheckResult.authenticatedBlanckFlag) {
 			return res.status(409).json({
 				error : "Conflict", 
 				message: "필수 기입 정보 중 누락된 부분이 있습니다."
 			});
 		}
-		/**
-		 * const authenticatedInfo = ['id','pwd','name','residentNum','email']
-		const orgCandidates = Object.keys(body).filter(key => authenticatedInfo.includes(key));
-		let authenticatedBlanckFlag = false
-		authenticatedInfo.forEach((key)=>{
-			if (body[key] === "") {
-				authenticatedBlanckFlag = true
-			}
-		});
-		
-		const organization = [];
-		orgCandidates.forEach((key)=>{
-			if (body[key] !== "") {
-				organization.push(body[key]);
-			}
-		});
-
-		if (organization.length === 0 || authenticatedBlanckFlag) {
-			return res.status(409).json({
-				error : "Conflict", 
-				message: "회원 정보 중 누락된 부분이 있습니다."
-			});
-		}
-		 */
 		
 		const [userSelectResult, fieldUser] = await conn.execute('SELECT * FROM user_auth WHERE id = ?', [body.id]);
 		console.log(userSelectResult);
@@ -107,7 +82,9 @@ router.post('/signin', notlogedIn, async (req, res) => {
 		const password = await makePasswordHashed(body.id, body.pwd);
 		if (recordedUserInfo.pwd === password) {
 			const token = jwt.sign({
-				id: recordedUserInfo.id
+				id: recordedUserInfo.id,
+				name : recordedUserInfo.name,
+				authority : recordedUserInfo.authority
 			}, process.env.JWT_SECRET, {
 				issuer: 'api-server'
 			});

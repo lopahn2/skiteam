@@ -3,7 +3,7 @@ module.exports = {
       post: {
         tags: ["Auth"],
         summary: "사용자 로그인",
-        description: "사용자 로그인(id, pwd)",
+        description: "사용자 로그인(id, pwd) / 토큰에는 id, name, authority가 들어갑니다.",
         requestBody: {
           content: {
             "application/json": {
