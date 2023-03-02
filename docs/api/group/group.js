@@ -54,7 +54,7 @@ module.exports = {
       post: {
         tags: ["Group"],
         summary: "스터디 그룹 생성",
-        description: "스터디 그룹 생성( room_name, accommodation, room_pwd )",
+        description: "스터디 그룹 생성( room_name, accommodation, room_pwd, explain )",
         requestBody: {
           content: {
             "application/json": {
@@ -74,6 +74,11 @@ module.exports = {
                     type: "string",
                     description: "room pwd (not neccessary)",
                     example: "1q2w3e4r",
+                  },
+                  explain: {
+                    type: "string",
+                    description: "room explain (not neccessary)",
+                    example: "1학년 4반 스터디룸",
                   }
                 },
               },

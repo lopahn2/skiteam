@@ -13,7 +13,7 @@ module.exports = {
         parameters,
         tags: ["Group"],
         summary: "스터디 그룹 수정",
-        description: "스터디 그룹 내용 수정( room_name, accommodation, room_pwd )",
+        description: "스터디 그룹 내용 수정( room_name, accommodation, room_pwd, explain )",
         
         requestBody: {
           content: {
@@ -34,7 +34,12 @@ module.exports = {
                     type: "string",
                     description: "room pwd (not neccessary)",
                     example: "1q2w3e4r",
-                  }
+                  },
+                  explain: {
+                    type: "string",
+                    description: "room explain",
+                    example: "1학년 3반 스터디룸",
+                  },
                 },
               },
             },
