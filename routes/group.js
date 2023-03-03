@@ -61,7 +61,7 @@ router.post('/', verifyToken, async (req, res) => {
 
 router.get('/', verifyToken, async (req, res) => {
 	try {
-        const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name ,accommodation,explain, created_at FROM `group`');
+        const [groupsSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name ,accommodation, `explain`, created_at FROM `group`');
 		return res.status(200).json({
 			message : "전체 스터디그룹 정보를 전송합니다.",
             groupsSelectReseult
@@ -102,7 +102,7 @@ router.get('/user/:roomId', verifyToken, async (req, res) => {
 router.get('/:roomId', verifyToken, async (req, res) => {
 	try {
         const roomId = req.params.roomId;
-        const [groupSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name,accommodation,explain ,created_at FROM `group` WHERE id = ?', [roomId]);
+        const [groupSelectReseult, fieldUser] = await conn.execute('SELECT id, room_name,accommodation,`explain` ,created_at FROM `group` WHERE id = ?', [roomId]);
 		return res.status(200).json({
 			message : "특정 스터디그룹 정보를 전송합니다.",
             groupSelectReseult
@@ -156,7 +156,7 @@ router.put('/:roomId', verifyToken, isMasterId, async (req, res) => {
 			} else if (key === 'accommodation') {
 				await conn.execute('UPDATE `group` SET accommodation = ?, updated_at = ? WHERE id = ?', [body[key], nowTime,req.params.roomId]);
 			} else if (key === 'explain') {
-				await conn.execute('UPDATE `group` SET explain = ?, updated_at = ? WHERE id = ?', [body[key], nowTime,req.params.roomId]);
+				await conn.execute('UPDATE `group` SET `explain` = ?, updated_at = ? WHERE id = ?', [body[key], nowTime,req.params.roomId]);
 			} else {
 				throw new Error('Client request key is not matched to the db column name.');
 			}
