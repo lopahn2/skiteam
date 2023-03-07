@@ -34,8 +34,10 @@
     "passport-local": "^1.0.0",
     "pm2": "^5.2.2",
     "redis": "^4.3.1",
+    "redis-server": "^1.2.2",
     "sanitize-html": "^2.7.2",
-    "sql-sanitizer": "^1.0.0"
+    "sql-sanitizer": "^1.0.0",
+    "status": "^0.0.13"
   },
   "devDependencies": {
     "swagger-jsdoc": "^6.2.8",

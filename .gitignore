@@ -1,4 +1,4 @@
 node_modules
 mysql_cmd
 .env
-memo.sql
+sql.sql

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>23/24 스키팀 입부 신청</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class = "backGround">
+        <div class = 'floatContainer'>
+                <div class = 'application-container'>
+                    <script src="../javascript/script.js"></script>
+                    <script>
+                        $(document).ready(function(){
+                            $("#listButton").click(getMemberList); //id="listButton"인 태그에 click하면 function getMemberList() 실행
+                        });
+                        function getMemberList(){
+                            $.ajax({
+                                url:"/admin/",                    
+                                success:function(data){
+                                    console.log(data);
+                                    let obj=data;      //data를 받아와서 JSON형태로 변환
+                                    let array=['# / --이름-- /---- 학과 ----/--- 학번 ---/',"<ol>"]; 
+                                    
+                                    obj["applicationResult"].forEach(
+                                            member =>  array.push("<li>"+member.name + ' / '+ member.department + ' / '+ member.student_number + ' / '+"</li>")    
+                                            //JSON에 있는 member.id의 value를 li태그에 넣어서 array에 넣어줌
+                                    );
+                                    array.push("</ol>");                                   
+                         
+                                    $("#result").html(array.join(""));  
+                                    //array의 요소들을 다 합쳐서 하나로 만든후 id="result"인 태그에 html로 출력
+                                }
+                            });    
+                        }
+                    </script>
+                    <button id = "listButton">불러오기</button>
+                    
+                    <div id="result"></div>
+                </div>
+        </div>
+    </div>
+</body>
+</html>

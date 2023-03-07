@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>23/24 스키팀 입부 신청</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class = "backGround">
+        <div class = 'floatContainer'>
+                <div class = 'application-container'>
+                    <div class = 'headline'>
+                        JOIN US
+                    </div>
+                    <form action = '/home/' method="post">
+                        <div class = 'text-container'>
+                            이름 <br>
+                            <input type = 'text' name="name" placeholder = "이름을 적어주세요" autofocus required>
+                        </div>
+                        <div class = 'text-container'>
+                            단과대학 <br>
+                            <input type = 'text' name = 'college' placeholder = "예시: 기술경영융합대학"  required>
+                        </div>
+                        <div class = 'text-container'>
+                            학과 <br>
+                            <input type = 'text' name = 'department'  placeholder = "학과 전체 이름 (기시디 X, 기계시스템디자인공학과 O )"  required>
+                        </div>
+                        <div class = 'text-container'>
+                            학번(8자리)<br>
+                            <input type = 'text' name = 'student_number' placeholder = "23001234"  required>
+                        </div>
+                        <div class = 'text-container'>
+                            전화번호<br>
+                            <input type = 'text' name = "phone_number" placeholder = "010-1234-5678"  required>
+                        </div>
+                        <div class = 'text-container'>
+                            <input id="submit-btn" type = 'submit' value = '신청하기'>
+                        </div>
+                    </form>
+                </div>
+        </div>
+    </div>
+</body>
+</html>
